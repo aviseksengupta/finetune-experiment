@@ -1,0 +1,29 @@
+# PDF LoRA fine-tuning config
+# Copy this file and adjust values for your experiment.
+
+[data]
+pdf_dir = "data/pdfs"          # folder containing your PDF files
+chunk_size = 512               # tokens per training sample
+chunk_overlap = 64             # token overlap between consecutive chunks
+
+[model]
+name = "meta-llama/Llama-3.2-3B"
+max_seq_length = 512
+
+[lora]
+r = 16                         # LoRA rank — higher = more capacity, more VRAM
+lora_alpha = 32
+lora_dropout = 0.05
+target_modules = ["q_proj", "v_proj"]   # which attention weights to adapt
+
+[training]
+output_dir = "outputs/llama3-pdf-lora"
+num_train_epochs = 3
+per_device_train_batch_size = 4
+gradient_accumulation_steps = 4        # effective batch = 4 × 4 = 16
+learning_rate = 2e-4
+warmup_ratio = 0.03
+lr_scheduler_type = "cosine"
+logging_steps = 10
+save_steps = 100
+fp16 = true                            # set to false on MPS / CPU
