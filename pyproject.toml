@@ -24,8 +24,8 @@ dependencies = [
 dev = ["pytest", "ruff", "mypy"]
 
 [project.scripts]
-train-lora = "finetune_pdfs.train_lora:app"
-train-shakespeare-lora = "finetune_pdfs.train_shakespeare_lora:app"
+train-lora = "finetune_shakespeare.train_lora:app"
+train-shakespeare-lora = "finetune_shakespeare.train_shakespeare_lora:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
