@@ -40,9 +40,9 @@ def train_lora(
         return
 
     from datasets import Dataset
-    from peft import LoraConfig, get_peft_model
-    from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
-    from trl import SFTTrainer
+    from peft import LoraConfig
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from trl import SFTConfig, SFTTrainer
 
     model_name: str = cfg["model"]["name"]
     max_seq_len: int = cfg["model"]["max_seq_length"]
@@ -66,32 +66,34 @@ def train_lora(
         bias="none",
         task_type="CAUSAL_LM",
     )
-    model = get_peft_model(model, peft_config)
-    model.print_trainable_parameters()
 
     t = cfg["training"]
-    training_args = TrainingArguments(
+    training_args = SFTConfig(
         output_dir=t["output_dir"],
         num_train_epochs=t["num_train_epochs"],
         per_device_train_batch_size=t["per_device_train_batch_size"],
         gradient_accumulation_steps=t["gradient_accumulation_steps"],
+        gradient_checkpointing=t.get("gradient_checkpointing", False),
         learning_rate=t["learning_rate"],
         warmup_ratio=t["warmup_ratio"],
         lr_scheduler_type=t["lr_scheduler_type"],
         logging_steps=t["logging_steps"],
         save_steps=t["save_steps"],
         fp16=t["fp16"],
+        bf16=t.get("bf16", False),
+        max_length=max_seq_len,
+        dataset_text_field="text",
         report_to="none",
     )
 
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=dataset,
-        dataset_text_field="text",
-        max_seq_length=max_seq_len,
+        peft_config=peft_config,
         args=training_args,
     )
+    trainer.model.print_trainable_parameters()
 
     console.print("\n[bold green]Starting LoRA training...[/bold green]")
     trainer.train()
